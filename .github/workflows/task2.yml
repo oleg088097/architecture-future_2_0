@@ -19,8 +19,9 @@ jobs:
 
       - name: Recreate secret file
         run: |
-          mkdir -p /workspace
-          echo "${{ secrets.AUTHORIZED_KEY_JSON_BASE64 }}" | base64 --decode > /workspace/authorized_key.json
+          sudo mkdir -p /workspace
+          echo "${{ secrets.AUTHORIZED_KEY_JSON_BASE64 }}" | base64 --decode | sudo tee /workspace/authorized_key.json > /dev/null
+          sudo chmod 644 /workspace/authorized_key.json
 
       - uses: hashicorp/setup-terraform@v4
 
@@ -55,8 +56,9 @@ jobs:
 
       - name: Recreate secret file
         run: |
-          mkdir -p /workspace
-          echo "${{ secrets.AUTHORIZED_KEY_JSON_BASE64 }}" | base64 --decode > /workspace/authorized_key.json
+          sudo mkdir -p /workspace
+          echo "${{ secrets.AUTHORIZED_KEY_JSON_BASE64 }}" | base64 --decode | sudo tee /workspace/authorized_key.json > /dev/null
+          sudo chmod 644 /workspace/authorized_key.json
 
       - uses: hashicorp/setup-terraform@v4
 
