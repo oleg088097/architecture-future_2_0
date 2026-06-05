@@ -43,3 +43,4 @@ terraform output
 - Скачивает artifact `tfplan` из job `plan`.
 - Создаёт `/workspace/` и восстанавливает `authorized_key.json` из секрета.
 - Выполняет `terraform init` и `terraform apply -auto-approve tfplan`.
+- В результате в S3 создаётся файл [terraform.json](terraform.json)
