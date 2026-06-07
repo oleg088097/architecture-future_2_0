@@ -1,0 +1,88 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title C4 Container — «Будущее 2.0» (целевое состояние, горизонт 3 года)
+
+Person(analyst, "Аналитик", "Бизнес-пользователь домена")
+
+System(clinical, "Клинический домен")
+note right of clinical
+    Per-region инстансы
+end note
+
+System(fintech, "Финтех домен")
+note right of fintech
+    Per-region инстансы
+end note
+
+System(ai, "ИИ домен")
+note right of ai
+    Per-region инстансы
+end note
+
+System(corp, "Корпоративный домен (HQ)")
+
+System(new, "Новые домены и партнёры")
+
+System(legacy, "Мосты совместимости (выведены)", "DWH, ESB")
+note top of legacy
+    Использовались на этапе миграции (CDC).
+    К году 3 полностью выведены:
+    - домены публикуют события в Kafka напрямую.
+    - домены пользуются внутридоменными хранилищами данных.
+end note
+
+System_Boundary(platform, "Платформа данных") {
+    Container(kafka, "Event Bus", "Apache Kafka", "Шина доменных событий и потоков данных")
+    Container(registry, "Schema Registry", "Confluent / Apicurio", "Версионирование схем событий")
+
+    Container(saver, "Stream Saver", "Kafka Connect", "S3 Sink")
+    Container(stream, "Stream Pipeline", "Flink", "Near-real-time обработка потоков. Предопределённые streaming-витрины, не настраиваются аналитиком")
+
+    ContainerDb(lakehouse, "LakeHouse", "S3 + Iceberg + Catalog", "Bronze / Silver / Gold слои данных")
+    Container(martBuilder, "Datamart Builder", "Spark", "Построение витрин в Gold-слое")
+
+    Container(portal, "Self-Service Portal", "Web-приложение", "Каталог данных и конструктор отчётов")
+    Container(bi, "BI", "Power BI", "Дашборды и визуализация по Gold-витринам")
+}
+
+' --- Domains ---
+Rel(clinical, kafka, "Доменные события")
+note on link
+    Без PHI/PII
+end note
+
+Rel(fintech, kafka, "Доменные события")
+
+Rel(ai, kafka, "Операционные метрики")
+note on link
+    Без PHI/PII
+end note
+
+Rel(corp, kafka, "Доменные события")
+Rel(new, kafka, "Доменные события")
+
+' --- Event platform ---
+Rel(kafka, registry, "Регистрация схем")
+
+Rel(kafka, saver, "Потребление событий")
+Rel(saver, lakehouse, "Запись Bronze / Silver", "Parquet / Iceberg")
+
+Rel(kafka, stream, "Потребление событий")
+Rel(stream, lakehouse, "Запись Gold", "Parquet / Iceberg")
+
+' --- Datamarts ---
+Rel(lakehouse, martBuilder, "Чтение Silver")
+Rel(martBuilder, lakehouse, "Запись Gold-витрин")
+Rel(portal, martBuilder, "Создание пользовательских витрин", "SQL")
+
+' --- Analytics consumption ---
+Rel(portal, lakehouse, "Discovery, метаданные", "Catalog API")
+Rel(lakehouse, bi, "Запросы к Gold-витринам", "SQL")
+Rel(analyst, portal, "Поиск данных, конструирование отчётов")
+Rel(analyst, bi, "Просмотр дашбордов")
+Rel(portal, bi, "Открытие сохранённых отчётов")
+
+@enduml
