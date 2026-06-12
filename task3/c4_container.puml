@@ -8,45 +8,75 @@ title C4 Container — «Будущее 2.0» (целевое состояние
 Person(analyst, "Аналитик", "Бизнес-пользователь домена")
 
 System(clinical, "Клинический домен")
-note right of clinical
-    Per-region инстансы
+note top of clinical
+    Per-region инстансы.
+    Переносим из ESB: ФЛК, фильтрация PHI, бизнес-логика
 end note
 
 System(fintech, "Финтех домен")
-note right of fintech
-    Per-region инстансы
+note top of fintech
+    Per-region инстансы.
+    Переносим из ESB: ФЛК, бизнес-логика
 end note
 
 System(ai, "ИИ домен")
-note right of ai
-    Per-region инстансы
+note top of ai
+    Per-region инстансы.
+    Переносим из ESB: ФЛК, бизнес-логика, интеграции через ACL
 end note
 
 System(corp, "Корпоративный домен (HQ)")
+note top of corp
+    Переносим из ESB: бизнес-логика
+end note
 
 System(new, "Новые домены и партнёры")
+note top of new
+    Переносим из ESB: бизнес-логика
+end note
 
 System(legacy, "Мосты совместимости (выведены)", "DWH, ESB")
 note top of legacy
     Использовались на этапе миграции (CDC).
-    К году 3 полностью выведены:
-    - домены публикуют события в Kafka напрямую.
-    - домены пользуются внутридоменными хранилищами данных.
+    К году 3 полностью выведены.
 end note
 
 System_Boundary(platform, "Платформа данных") {
-    Container(kafka, "Event Bus", "Apache Kafka", "Шина доменных событий и потоков данных")
+    Container(kafka, "Event Bus", "Apache Kafka", "Шина доменных событий")
+    note left of kafka
+        Переносим из ESB: маршрутизация, паттерны надёжности
+    end note
     Container(registry, "Schema Registry", "Confluent / Apicurio", "Версионирование схем событий")
+    note bottom of registry
+        Переносим из ESB: ФЛК
+    end note
 
     Container(saver, "Stream Saver", "Kafka Connect", "S3 Sink")
-    Container(stream, "Stream Pipeline", "Flink", "Near-real-time обработка потоков. Предопределённые streaming-витрины, не настраиваются аналитиком")
+    note right of saver
+        Переносим из ESB: потоковые трансформации
+    end note
 
-    ContainerDb(lakehouse, "LakeHouse", "S3 + Iceberg + Catalog", "Bronze / Silver / Gold слои данных")
-    Container(martBuilder, "Datamart Builder", "Spark", "Построение витрин в Gold-слое")
+    Container(stream, "Stream Pipeline", "Flink", "Near-real-time обработка потоков")
+    note right of stream
+        Переносим из ESB: потоковые трансформации
+    end note
+
+    ContainerDb(lakehouse, "LakeHouse", "S3 + Iceberg + Catalog", "Bronze / Silver / Gold")
+    note right of lakehouse
+        Переносим из ESB: ФЛК, фильтрация PHI
+    end note
+
+    Container(martBuilder, "Datamart Builder", "Spark", "Построение Gold-витрин")
+    note right of martBuilder
+        Переносим из ESB: пакетные трансформации
+    end note
 
     Container(portal, "Self-Service Portal", "Web-приложение", "Каталог данных и конструктор отчётов")
     Container(bi, "BI", "Power BI", "Дашборды и визуализация по Gold-витринам")
 }
+
+
+
 
 ' --- Domains ---
 Rel(clinical, kafka, "Доменные события")
