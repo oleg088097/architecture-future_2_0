@@ -1,0 +1,23 @@
+@startuml
+title Bounded Context Map
+
+rectangle "<<Bounded context>>\nКлинический домен" as Clinical
+
+rectangle "<<Bounded context>>\nИИ домен" as AI
+
+rectangle "<<Bounded context>>\nФинтех домен" as Fintech
+
+rectangle "<<Bounded context>>\nКорпоративный домен" as Corporate
+
+Clinical --> AI : **Open Host Service**
+AI --> Clinical : **Anti-corruption Layer**
+
+Corporate --> Clinical : **Open Host Service**
+Corporate --> Fintech : **Open Host Service**
+Corporate --> AI : **Open Host Service**
+
+Clinical --> Corporate : **Conformist**
+Fintech --> Corporate : **Conformist**
+AI --> Corporate : **Conformist**
+
+@enduml

@@ -1,0 +1,10 @@
+cloud_id        = "cloud_id_here"
+folder_id       = "folder_id_here"
+zone            = "ru-central1-a"
+platform_id     = "standard-v3"
+cores           = 2
+memory          = 2
+subnet_id       = "subnet_id_here"
+disk_image_id   = "ubuntu-1604-lts-1549457823"
+disk_size       = 40
+environment     = "prod"

@@ -1,0 +1,37 @@
+{
+  "version": 4,
+  "terraform_version": "1.15.5",
+  "serial": 1,
+  "lineage": "170e41de-74b4-2aaf-1fae-345d5b787cc6",
+  "outputs": {
+    "instance_name": {
+      "value": "dev-vm",
+      "type": "string"
+    }
+  },
+  "resources": [],
+  "check_results": [
+    {
+      "object_kind": "var",
+      "config_addr": "module.vm.var.environment",
+      "status": "pass",
+      "objects": [
+        {
+          "object_addr": "module.vm.var.environment",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "object_kind": "var",
+      "config_addr": "var.environment",
+      "status": "pass",
+      "objects": [
+        {
+          "object_addr": "var.environment",
+          "status": "pass"
+        }
+      ]
+    }
+  ]
+}

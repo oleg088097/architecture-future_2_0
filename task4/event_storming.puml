@@ -1,0 +1,110 @@
+@startuml
+!include https://raw.githubusercontent.com/tmorin/plantuml-libs/master/distribution/eventstorming/single.puml
+
+title Event Storming
+
+left to right direction
+
+rectangle "Финтех домен" #F3E5F5 {
+
+  Aggregate(agg_fintech_client, "Клиент")
+  Aggregate(agg_account, "Счёт")
+  Aggregate(agg_fin_history, "Финансовая история")
+  Aggregate(agg_credit, "Кредит")
+
+  IntegrationEvent(evt_account_open, "Открыт счёт")
+  IntegrationEvent(evt_account_close, "Закрыт счёт")
+  IntegrationEvent(evt_fin_updated, "Обновлена финансовая история")
+  IntegrationEvent(evt_credit_app, "Создана заявка на кредит")
+  IntegrationEvent(evt_decision, "Принято решение по заявке на кредит")
+
+  circle "Report" as evt_rpt_fintech
+
+}
+
+rectangle "ИИ домен" #E3F2FD {
+
+  Aggregate(agg_ai_patient, "Пациент")
+  Aggregate(agg_ai_study, "Исследование")
+
+  IntegrationEvent(evt_ai_profile, "Создан профиль пациента")
+  IntegrationEvent(evt_diagnostics_done, "Выполнено ИИ исследование")
+  IntegrationEvent(evt_alert, "Создано оповещение по пациенту")
+
+}
+
+rectangle "Клинический домен" #E8F5E9 {
+
+  Aggregate(agg_clinical_patient, "Пациент")
+  Aggregate(agg_record, "Карточка пациента")
+  Aggregate(agg_diag, "Диагностическое исследование")
+  Aggregate(agg_service, "Услуга")
+
+  IntegrationEvent(evt_referral, "Создано направление на ИИ исследование")
+  IntegrationEvent(evt_card_created, "Создана карточка пациента")
+  IntegrationEvent(evt_card_updated, "Обновлена карточка пациента")
+  IntegrationEvent(evt_doc_added, "Добавлен документ к карточке")
+  IntegrationEvent(evt_service, "Услуга оказана")
+
+}
+
+rectangle "Корпоративный домен" #FFF3E0 {
+
+  Aggregate(agg_report, "Отчёт (HQ)")
+  Aggregate(agg_global_client, "Клиент (globalId)")
+
+  IntegrationEvent(evt_link, "Создана связка domainId <-> globalId")
+
+}
+
+' --- Направление ---
+agg_diag --> evt_referral
+evt_referral --> agg_ai_patient
+agg_ai_patient --> evt_ai_profile
+evt_ai_profile --> agg_global_client
+evt_ai_profile --> agg_ai_study
+evt_ai_profile --> agg_report
+agg_ai_study --> evt_diagnostics_done
+evt_diagnostics_done --> agg_diag
+
+' --- Проактивный мониторинг ---
+agg_record --> evt_card_created
+evt_card_created --> agg_ai_patient
+evt_card_created --> agg_global_client
+agg_record --> evt_card_updated
+evt_card_updated --> agg_ai_patient
+agg_record --> evt_doc_added
+evt_doc_added --> agg_ai_patient
+agg_ai_patient --> evt_alert
+evt_alert --> agg_record
+
+' --- Услуга ---
+agg_service --> evt_service
+evt_service --> agg_report
+
+' --- Финтех ---
+agg_account --> evt_account_open
+evt_account_open --> agg_global_client
+
+agg_account --> evt_account_close
+
+agg_credit --> evt_credit_app
+evt_credit_app --> agg_fin_history
+agg_fin_history --> evt_fin_updated
+evt_fin_updated --> agg_credit
+agg_credit --> evt_decision
+
+evt_fin_updated --> evt_rpt_fintech
+evt_account_open --> evt_rpt_fintech
+evt_account_close --> evt_rpt_fintech
+evt_credit_app --> evt_rpt_fintech
+evt_decision --> evt_rpt_fintech
+evt_rpt_fintech --> agg_report
+
+' --- Связка id ---
+agg_global_client --> evt_link
+evt_link --> agg_clinical_patient
+evt_link --> agg_fintech_client
+evt_link --> agg_ai_patient
+
+@enduml
